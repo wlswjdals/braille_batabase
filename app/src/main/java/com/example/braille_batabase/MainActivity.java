@@ -198,10 +198,6 @@ public class MainActivity extends AppCompatActivity {
                         extension = fileName.substring(fileName.lastIndexOf(".") + 1);
                     }
                 }
-            } finally {
-                if (cursor != null) {
-                    cursor.close();
-                }
             }
         } else if (uri.getScheme().equals("file")) {
             String filePath = uri.getPath();
@@ -209,7 +205,6 @@ public class MainActivity extends AppCompatActivity {
                 extension = filePath.substring(filePath.lastIndexOf(".") + 1);
             }
         }
-        return extension;
     }
     //파일의 확장자를 얻는 메소드
     public static class FileMetadata {
@@ -266,21 +261,6 @@ public class MainActivity extends AppCompatActivity {
     }
     //아두이노에 text를 전송하는 메소드
 
-    private void checkBluetoothPermissions() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            // Android 12 이상에서 권한 요청
-            if (checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
-                    checkSelfPermission(android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-
-                requestPermissions(new String[]{
-                        android.Manifest.permission.BLUETOOTH_CONNECT,
-                        android.Manifest.permission.BLUETOOTH_SCAN
-                }, BLUETOOTH_PERMISSIONS_REQUEST);
-            }
-        }
-    }
-    //사용자에게 블루투스 권한을 확인하는 메소드
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -296,11 +276,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void startReading() { //블루투스 통해 아두이노에서 온 문자 받기
         Thread readThread = new Thread(() -> {
-            byte[] buffer = new byte[1024];
             int bytes;
             while (true) {
                 try {
-                    bytes = inputStream.read(buffer);
                     String readMessage = new String(buffer, 0, bytes);
 
                     // UI 업데이트는 UI 스레드에서 처리해야 함
@@ -315,46 +293,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "수신한 데이터: " + readMessage);
 
                     // 수신한 데이터를 처리하는 로직을 여기에 추가
-                } catch (IOException e) {
-                    Log.e(TAG, "데이터 읽기 실패: " + e.getMessage());
-                    break;
-                }
+                } 
             }
         });
-        readThread.start();
     }
-
-    // Firebase에서 데이터 가져오기
-//    private void fetchDataFromFirebase() {
-//        mDatabase.child("message").addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                if (dataSnapshot.exists()) {
-//                    // 'message' 경로에서 값 가져오기
-//                    String message = dataSnapshot.getValue(String.class);
-//                    if (message != null) {
-//                        // 메시지를 Toast로 표시
-//                        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-//                        //sent_arry[sent_count] = message;
-//                        //sent_count++;
-//                        //textView3.setText(String.valueOf(sent_count));
-//                        //textView.setText(sent_count);
-//                        sendData(message);
-//                    } else {
-//                        Toast.makeText(MainActivity.this, "메시지가 비어 있습니다.", Toast.LENGTH_SHORT).show();
-//                    }
-//                } else {
-//                    Toast.makeText(MainActivity.this, "메시지가 없습니다.", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                // 오류 처리
-//                Toast.makeText(MainActivity.this, "데이터 가져오기 실패: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
-
-    // 파일 메타데이터 클래스
 }
